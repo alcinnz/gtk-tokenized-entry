@@ -65,14 +65,12 @@ public class TokenizedEntry : Grid {
         entry.activate.connect(() => {
             var row = list.get_selected_row();
             if (row == null && !(row is TextRow)) return;
-            entry.text = (row as TextRow).label;
 
-            // Remove focus from text entry
-            get_toplevel().grab_focus();
+            addtoken(row as TextRow);
         });
 
         list.row_activated.connect((row) => {
-            // TODO
+            addtoken(row as TextRow);
         });
     }
 
@@ -116,6 +114,26 @@ public class TokenizedEntry : Grid {
         this.size_allocate.connect((box) => scrolled.width_request = box.width);
 
         autocomplete_connect_events();
+    }
+
+    /* -- tokens -- */
+    private void addtoken(TextRow row) {
+        var token = new Button.with_label(row.label);
+        insert_next_to(entry, Gtk.PositionType.LEFT);
+        attach_next_to(token, entry, Gtk.PositionType.LEFT);
+        token.show_all();
+
+        token.clicked.connect(() => {
+            entry.text = token.label;
+            entry.grab_focus();
+
+            popover.show_all();
+            autocomplete();
+
+            token.destroy();
+        });
+
+        entry.text = "";
     }
 
     /* -- entrypoint -- */
