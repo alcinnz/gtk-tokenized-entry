@@ -1,7 +1,8 @@
 using Gtk;
 
-public class TokenizedEntry : Grid {
+public class TokenizedEntry : ScrolledWindow {
     private Entry entry;
+    private Grid grid;
 
     /* -- expand to fill -- */
     public int max_width {get; set; default = 840;} // Something large
@@ -120,8 +121,8 @@ public class TokenizedEntry : Grid {
     private void addtoken(TextRow row) {
         var token = new Button.with_label(row.label);
         token.tooltip_text = "Edit/remove '%s' tag".printf(row.label);
-        insert_next_to(entry, Gtk.PositionType.LEFT);
-        attach_next_to(token, entry, Gtk.PositionType.LEFT);
+        grid.insert_next_to(entry, Gtk.PositionType.LEFT);
+        grid.attach_next_to(token, entry, Gtk.PositionType.LEFT);
         token.show_all();
 
         token.clicked.connect(() => {
@@ -142,22 +143,25 @@ public class TokenizedEntry : Grid {
     /* -- styles -- */
     private const string STYLESHEET = """
         .token {
-            background: #0d52bf;
+            background: #3689e6;
             color: #fff;
             border-radius: 20px;
         }
+        .token:focus {background: #0d52bf;}
     """;
 
     private void apply_styles() {
         get_style_context().add_class(Gtk.STYLE_CLASS_ENTRY);
+
         entry.get_style_context().remove_class(Gtk.STYLE_CLASS_ENTRY);
+        // FIXME bring back focused styles.
     }
 
     private void apply_token_styles(Gtk.Button token) {
         var styles = token.get_style_context();
 
         styles.add_class("token");
-        token.margin_right = 1; token.margin_left = 1;
+        token.margin_left = 4;
 
         try {
             var stylesheet = new Gtk.CssProvider();
@@ -168,14 +172,19 @@ public class TokenizedEntry : Grid {
 
     /* -- entrypoint -- */
     construct {
-        column_spacing = 5;
-        orientation = Gtk.Orientation.VERTICAL;
-        notify["max-width"].connect(queue_resize);
+        vscrollbar_policy = Gtk.PolicyType.NEVER;
+        hscrollbar_policy = Gtk.PolicyType.EXTERNAL;
+
+        grid = new Gtk.Grid();
+        add(grid);
+
+        grid.orientation = Gtk.Orientation.VERTICAL;
+        grid.notify["max-width"].connect(queue_resize);
 
         entry = new Gtk.Entry();
         entry.hexpand = true;
         entry.halign = Gtk.Align.FILL;
-        add(entry);
+        grid.add(entry);
 
         build_autocomplete();
         apply_styles();
