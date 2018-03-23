@@ -136,9 +136,16 @@ public class TokenizedEntry : Grid {
         entry.text = "";
     }
 
+    /* -- styles -- */
+    private void apply_styles() {
+        var styles = get_style_context();
+        styles.add_class(Gtk.STYLE_CLASS_ENTRY);
+    }
+
     /* -- entrypoint -- */
     construct {
         column_spacing = 5;
+        orientation = Gtk.Orientation.VERTICAL;
         notify["max-width"].connect(queue_resize);
 
         entry = new Gtk.Entry();
@@ -147,5 +154,6 @@ public class TokenizedEntry : Grid {
         add(entry);
 
         build_autocomplete();
+        apply_styles();
     }
 }
