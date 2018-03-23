@@ -1,6 +1,8 @@
 using Gtk;
 
-public class TokenizedEntry : Entry {
+public class TokenizedEntry : Grid {
+    private Entry entry;
+
     /* -- expand to fill -- */
     public int max_width {get; set; default = 840;} // Something large
 
@@ -28,23 +30,19 @@ public class TokenizedEntry : Entry {
     private int selected = 0;
 
     private void autocomplete_connect_events() {
-        changed.connect(autocomplete);
+        entry.changed.connect(autocomplete);
 
-        this.focus_in_event.connect((evt) => {
+        entry.focus_in_event.connect((evt) => {
             popover.show_all();
             autocomplete();
 
-            Idle.add(() => {
-                this.select_region(0, -1);
-                return false;
-            }, Priority.HIGH); // To aid retyping URLs, copy+paste
             return false;
         });
-        this.focus_out_event.connect((evt) => {
+        entry.focus_out_event.connect((evt) => {
             popover.hide();
             return false;
         });
-        this.key_press_event.connect((evt) => {
+        entry.key_press_event.connect((evt) => {
             switch (evt.keyval) {
             case Gdk.Key.Up:
             case Gdk.Key.KP_Up:
@@ -64,10 +62,10 @@ public class TokenizedEntry : Entry {
             list.select_row(list.get_row_at_index(selected));
             return true;
         });
-        this.activate.connect(() => {
+        entry.activate.connect(() => {
             var row = list.get_selected_row();
             if (row == null && !(row is TextRow)) return;
-            this.text = (row as TextRow).label;
+            entry.text = (row as TextRow).label;
 
             // Remove focus from text entry
             get_toplevel().grab_focus();
@@ -90,7 +88,7 @@ public class TokenizedEntry : Entry {
     private void autocomplete() {
         list.@foreach((widget) => {list.remove(widget);});
 
-        foreach (var completion in autocompletions) if (this.text in completion) {
+        foreach (var completion in autocompletions) if (entry.text in completion) {
             list.add(new TextRow(completion));
 
             /* Ensure a row is selected. */
@@ -123,6 +121,11 @@ public class TokenizedEntry : Entry {
     /* -- entrypoint -- */
     construct {
         notify["max-width"].connect(queue_resize);
+
+        entry = new Gtk.Entry();
+        entry.hexpand = true;
+        entry.halign = Gtk.Align.FILL;
+        add(entry);
 
         build_autocomplete();
     }
