@@ -138,6 +138,7 @@ public class TokenizedEntry : Grid {
 
     /* -- entrypoint -- */
     construct {
+        column_spacing = 5;
         notify["max-width"].connect(queue_resize);
 
         entry = new Gtk.Entry();
