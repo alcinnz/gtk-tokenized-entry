@@ -149,8 +149,8 @@ public class TokenizedEntry : Grid {
     """;
 
     private void apply_styles() {
-        var styles = get_style_context();
-        styles.add_class(Gtk.STYLE_CLASS_ENTRY);
+        get_style_context().add_class(Gtk.STYLE_CLASS_ENTRY);
+        entry.get_style_context().remove_class(Gtk.STYLE_CLASS_ENTRY);
     }
 
     private void apply_token_styles(Gtk.Button token) {
