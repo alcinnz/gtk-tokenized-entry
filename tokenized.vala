@@ -133,13 +133,32 @@ public class TokenizedEntry : Grid {
             token.destroy();
         });
 
+        apply_token_styles(token);
+
         entry.text = "";
     }
 
     /* -- styles -- */
+    private const string STYLESHEET = """
+        .token {background: #3689e6;}
+    """;
+
     private void apply_styles() {
         var styles = get_style_context();
         styles.add_class(Gtk.STYLE_CLASS_ENTRY);
+
+    }
+
+    private void apply_token_styles(Gtk.Button token) {
+        var styles = token.get_style_context();
+
+        styles.add_class("token");
+
+        try {
+            var stylesheet = new Gtk.CssProvider();
+            stylesheet.load_from_data(STYLESHEET);
+            styles.add_provider(stylesheet, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+        } catch (Error err) {}
     }
 
     /* -- entrypoint -- */
