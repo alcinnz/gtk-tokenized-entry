@@ -4,7 +4,7 @@ project('tokenized-entry-test', ['vala', 'c'],
     meson_version: '>=0.40.1')
 
 executable('test-tokenized-entry',
-    ['main.vala', 'tokenized.vala'],
+    ['main.vala', 'tokenized.vala', 'AutomaticScrollBox.vala'],
     link_args: '-lm',
     dependencies: [dependency('gtk+-3.0'), dependency('gee-0.8')],
     install: false

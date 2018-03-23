@@ -7,6 +7,11 @@ class MyWindow : Window {
         set_titlebar(header);
 
         var entry = new TokenizedEntry();
+        try {
+            entry.read_autocompletions("../vala-libs.txt");
+        } catch (Error err) {
+            warning("Failed to read completions: %s", err.message);
+        }
         header.custom_title = entry;
         header.size_allocate.connect((box) => entry.max_width = box.width);
 
