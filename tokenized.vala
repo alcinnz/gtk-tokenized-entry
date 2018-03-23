@@ -119,6 +119,7 @@ public class TokenizedEntry : Grid {
     /* -- tokens -- */
     private void addtoken(TextRow row) {
         var token = new Button.with_label(row.label);
+        token.tooltip_text = "Edit/remove '%s' tag".printf(row.label);
         insert_next_to(entry, Gtk.PositionType.LEFT);
         attach_next_to(token, entry, Gtk.PositionType.LEFT);
         token.show_all();
@@ -156,7 +157,7 @@ public class TokenizedEntry : Grid {
         var styles = token.get_style_context();
 
         styles.add_class("token");
-        token.margin_left = 5;
+        token.margin_right = 1; token.margin_left = 1;
 
         try {
             var stylesheet = new Gtk.CssProvider();
