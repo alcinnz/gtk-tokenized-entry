@@ -1,7 +1,8 @@
 using Gtk;
 
-public class TokenizedEntry : ScrolledWindow {
+public class TokenizedEntry : Grid {
     private Entry entry;
+    private Button clear_button;
     private Grid grid;
 
     /* -- expand to fill -- */
@@ -121,8 +122,7 @@ public class TokenizedEntry : ScrolledWindow {
     private void addtoken(TextRow row) {
         var token = new Button.with_label(row.label);
         token.tooltip_text = "Edit/remove '%s' tag".printf(row.label);
-        grid.insert_next_to(entry, Gtk.PositionType.LEFT);
-        grid.attach_next_to(token, entry, Gtk.PositionType.LEFT);
+        grid.add(token);
         token.show_all();
 
         token.clicked.connect(() => {
@@ -133,11 +133,14 @@ public class TokenizedEntry : ScrolledWindow {
             autocomplete();
 
             token.destroy();
+            if (grid.get_children().length() == 0) clear_button.hide();
         });
 
         apply_token_styles(token);
 
         entry.text = "";
+        clear_button.no_show_all = false;
+        clear_button.show_all();
     }
 
     /* -- styles -- */
@@ -145,23 +148,18 @@ public class TokenizedEntry : ScrolledWindow {
         .token {
             background: #3689e6;
             color: #fff;
-            border-radius: 20px;
+            border-radius: 8px;
+            margin: 0 2px;
+            padding: 0;
         }
         .token:focus {background: #0d52bf;}
     """;
-
-    private void apply_styles() {
-        get_style_context().add_class(Gtk.STYLE_CLASS_ENTRY);
-
-        entry.get_style_context().remove_class(Gtk.STYLE_CLASS_ENTRY);
-        // FIXME bring back focused styles.
-    }
 
     private void apply_token_styles(Gtk.Button token) {
         var styles = token.get_style_context();
 
         styles.add_class("token");
-        token.margin_left = 4;
+        //token.margin = 2;
 
         try {
             var stylesheet = new Gtk.CssProvider();
@@ -172,21 +170,29 @@ public class TokenizedEntry : ScrolledWindow {
 
     /* -- entrypoint -- */
     construct {
-        vscrollbar_policy = Gtk.PolicyType.NEVER;
-        hscrollbar_policy = Gtk.PolicyType.EXTERNAL;
+        get_style_context().add_class(STYLE_CLASS_LINKED);
+
+        orientation = Gtk.Orientation.HORIZONTAL;
+        notify["max-width"].connect(queue_resize);
+
+        clear_button = new Button();
+        clear_button.get_style_context().add_class(STYLE_CLASS_ENTRY);
+        clear_button.no_show_all = true;
+        clear_button.clicked.connect(() => {
+            foreach (var child in grid.get_children()) child.destroy();
+            clear_button.hide();
+        });
+        add(clear_button);
 
         grid = new Gtk.Grid();
-        add(grid);
-
-        grid.orientation = Gtk.Orientation.VERTICAL;
-        grid.notify["max-width"].connect(queue_resize);
+        clear_button.add(grid);
 
         entry = new Gtk.Entry();
         entry.hexpand = true;
         entry.halign = Gtk.Align.FILL;
-        grid.add(entry);
+        add(entry);
 
         build_autocomplete();
-        apply_styles();
+        //apply_styles();
     }
 }
