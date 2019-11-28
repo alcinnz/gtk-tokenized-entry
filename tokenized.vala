@@ -208,6 +208,7 @@ public class TokenizedEntry : Grid {
             _tokens.clear();
             rebuild_tokens();
         });
+        clear_button.can_focus = false;
         add(clear_button);
 
         grid = new Gtk.Grid();
