@@ -143,7 +143,7 @@ public class TokenizedEntry : Grid {
 
     private void _addtoken(Token row) {
         var token = new Button.with_label(row.label);
-        token.tooltip_text = "Edit/remove '%s' tag".printf(row.label);
+        token.tooltip_text = "Remove '%s'".printf(row.label);
         grid.add(token);
         token.show_all();
 
