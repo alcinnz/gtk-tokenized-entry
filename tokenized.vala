@@ -5,6 +5,23 @@ public class TokenizedEntry : Grid {
     private Button clear_button;
     private Grid grid;
 
+    public class Token {
+        public string label;
+        public float hue;
+        public Token(string label, float hue = 1.0f) {
+            this.label = label; this.hue = hue;
+        }
+    }
+    private Gee.List<Token> _tokens = new Gee.ArrayList<Token>();
+    public unowned Gee.List<Token> tokens {
+        set {
+            _tokens.clear();
+            _tokens.add_all(value);
+            rebuild_tokens();
+        }
+        get {return _tokens;}
+    }
+
     /* -- expand to fill -- */
     public int max_width {get; set; default = 840;} // Something large
 
@@ -76,7 +93,7 @@ public class TokenizedEntry : Grid {
         });
     }
 
-    private class TextRow : ListBoxRow {
+    public class TextRow : ListBoxRow {
         public string label = "";
         public TextRow(string label) {
             this.label = label;
@@ -119,21 +136,23 @@ public class TokenizedEntry : Grid {
     }
 
     /* -- tokens -- */
-    private void addtoken(TextRow row) {
+    public void addtoken(TextRow row) {
+        _tokens.add(new Token(row.label));
+        rebuild_tokens();
+    }
+
+    private void _addtoken(Token row) {
         var token = new Button.with_label(row.label);
         token.tooltip_text = "Edit/remove '%s' tag".printf(row.label);
         grid.add(token);
         token.show_all();
 
         token.clicked.connect(() => {
-            entry.text = token.label;
+            entry.text = row.label; // FIXME: This text isn't coming over.
             entry.grab_focus();
 
-            popover.show_all();
-            autocomplete();
-
-            token.destroy();
-            if (grid.get_children().length() == 0) clear_button.hide();
+            _tokens.remove(row);
+            rebuild_tokens();
         });
 
         apply_token_styles(token);
@@ -141,6 +160,14 @@ public class TokenizedEntry : Grid {
         entry.text = "";
         clear_button.no_show_all = false;
         clear_button.show_all();
+    }
+
+    private void rebuild_tokens() {
+        foreach (var child in grid.get_children()) child.destroy();
+        foreach (var token in _tokens) _addtoken(token);
+
+        if (_tokens.size == 0) clear_button.hide();
+        else clear_button.show_all();
     }
 
     /* -- styles -- */
@@ -159,7 +186,6 @@ public class TokenizedEntry : Grid {
         var styles = token.get_style_context();
 
         styles.add_class("token");
-        //token.margin = 2;
 
         try {
             var stylesheet = new Gtk.CssProvider();
@@ -179,8 +205,8 @@ public class TokenizedEntry : Grid {
         clear_button.get_style_context().add_class(STYLE_CLASS_ENTRY);
         clear_button.no_show_all = true;
         clear_button.clicked.connect(() => {
-            foreach (var child in grid.get_children()) child.destroy();
-            clear_button.hide();
+            _tokens.clear();
+            rebuild_tokens();
         });
         add(clear_button);
 
