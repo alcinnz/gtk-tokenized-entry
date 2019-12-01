@@ -121,7 +121,7 @@ public class TokenizedEntry : Grid {
         list.activate_on_single_click = true;
         list.selection_mode = Gtk.SelectionMode.BROWSE;
 
-        var scrolled = new AutomaticScrollBox();
+        var scrolled = new Tokenized.AutomaticScrollBox();
         scrolled.add(list);
         scrolled.shadow_type = Gtk.ShadowType.IN;
 
