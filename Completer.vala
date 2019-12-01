@@ -3,20 +3,32 @@ namespace Tokenized {
         public Completer completer { construct; get; }
         public string query = "";
 
-        protected void suggest(string val, string label = "-") {
-            completer.@yield(val, label == "-" ? val : label);
+        protected void suggest(string val, string? label = null) {
+            completer.@yield(new Completion(val, label == null ? val : label));
+        }
+        protected void token(string val, string? label = null, Completer? completer = null) {
+            completer.@yield(new Completion.token(val, label == null ? val : label, completer));
         }
 
         public abstract void autocomplete();
     }
 
-    private class Completion : Object {
+    public class Completion : Object {
         public string val {get; set;}
         public string label {get; set;}
+        public Completer? completer = null;
+        public bool is_token;
 
         public Completion(string val, string label) {
             this.val = val;
             this.label = label;
+            this.is_token = false;
+        }
+        public Completion.token(string val, string label, Completer? completer = null) {
+            this.val = val;
+            this.label = label;
+            this.is_token = true;
+            this.completer = completer;
         }
     }
 
@@ -30,10 +42,9 @@ namespace Tokenized {
             if (completer != null) delegates.add(completer);
         }
 
-        public delegate void YieldCallback(string url, string label);
+        public delegate void YieldCallback(Completion completion);
         private YieldCallback yieldCallback;
-        public void suggest(string query, owned YieldCallback cb) {
-            this.yieldCallback = cb;
+        public void suggest(string query) {
             seen.clear();
 
             foreach (var completer in delegates) {
@@ -42,11 +53,11 @@ namespace Tokenized {
             }
         }
 
-        public void @yield(string val, string label) {
-            if (val in seen) return;
-            seen.add(val);
+        public void @yield(Completion completion) {
+            if (completion.val in seen) return;
+            seen.add(completion.val);
 
-            yieldCallback(val, label);
+            yieldCallback(completion);
         }
     }
 
