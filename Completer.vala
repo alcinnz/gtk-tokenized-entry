@@ -1,16 +1,6 @@
 namespace Tokenized {
     public abstract class CompleterDelegate : Object {
-        public Completer completer { construct; get; }
-        public string query = "";
-
-        protected void suggest(string val, string? label = null) {
-            completer.@yield(new Completion(val, label == null ? val : label));
-        }
-        protected void token(string val, string? label = null, Completer? completer = null) {
-            completer.@yield(new Completion.token(val, label == null ? val : label, completer));
-        }
-
-        public abstract void autocomplete();
+        public abstract void autocomplete(string query, Completer completer);
     }
 
     public class Completion : Object {
@@ -38,18 +28,22 @@ namespace Tokenized {
         private Gee.Set<string> seen = new Gee.HashSet<string>();
 
         public void add_type(Type type) {
-            var completer = Object.@new(type, "completer", this) as CompleterDelegate;
+            var completer = Object.@new(type) as CompleterDelegate;
             if (completer != null) delegates.add(completer);
+        }
+
+        public void add(CompleterDelegate completer) {
+            delegates.add(completer);
         }
 
         public delegate void YieldCallback(Completion completion);
         private YieldCallback yieldCallback;
-        public void suggest(string query) {
+        public void suggest(string query, owned YieldCallback cb) {
+            this.yieldCallback = cb;
             seen.clear();
 
             foreach (var completer in delegates) {
-                completer.query = query;
-                completer.autocomplete();
+                completer.autocomplete(query, this);
             }
         }
 
@@ -58,6 +52,13 @@ namespace Tokenized {
             seen.add(completion.val);
 
             yieldCallback(completion);
+        }
+
+        public void suggestion(string val, string? label = null) {
+            @yield(new Completion(val, label == null ? val : label));
+        }
+        public void token(string val, string? label = null, Completer? completer = null) {
+            @yield(new Completion.token(val, label == null ? val : label, completer));
         }
     }
 

@@ -31,19 +31,9 @@ public class TokenizedEntry : Grid {
         nat_width = max_width;
     }
 
-    /* -- read in autocompletions -- */
-    public string[] autocompletions;
-
-    public void read_autocompletions(string filename) throws Error {
-        var file = FileStream.open(filename, "r");
-
-        var line = "";
-        var autocompletions = new Gee.ArrayList<string>();
-        while ((line = file.read_line()) != null) autocompletions.add(line.strip());
-        this.autocompletions = autocompletions.to_array();
-    }
-
     /* -- autocompletion -- */
+    public Tokenized.Completer autocompleter = new Tokenized.Completer();
+
     private Gtk.Popover popover;
     private Gtk.ListBox list;
     private int selected = 0;
@@ -105,15 +95,15 @@ public class TokenizedEntry : Grid {
     private void autocomplete() {
         list.@foreach((widget) => {list.remove(widget);});
 
-        foreach (var completion in autocompletions) if (entry.text in completion) {
-            list.add(new TextRow(completion));
+        autocompleter.suggest(entry.text, (result) => {
+            list.add(new TextRow(result.label));
 
             /* Ensure a row is selected. */
             if (list.get_children().length() == 1) {
                 list.select_row(list.get_row_at_index(0));
                 this.selected = 0;
             }
-        }
+        });
     }
 
     private void build_autocomplete() {
