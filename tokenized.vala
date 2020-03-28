@@ -138,11 +138,11 @@ public class TokenizedEntry : Grid {
         token.show_all();
 
         token.clicked.connect(() => {
-            entry.text = row.label; // FIXME: This text isn't coming over.
-            entry.grab_focus();
-
             _tokens.remove(row);
             rebuild_tokens();
+
+            entry.text = row.label;
+            entry.grab_focus();
         });
 
         apply_token_styles(token);
